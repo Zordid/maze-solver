@@ -4,33 +4,26 @@ import mazesolver.objects.Grid
 import mazesolver.objects.Point
 import mazesolver.objects.State
 import java.util.*
-import java.util.logging.Logger
 
+open class Dijkstra : SearchAlgorithm {
 
-public open class Dijkstra : SearchAlgorithm {
-
-
-
-    public open class Node(marker: Grid.Marker, x: Int, y: Int) : Comparable<Node> {
-        public open var totalDistance: Double = Double.POSITIVE_INFINITY
-        public val marker: Grid.Marker = marker
+    open class Node(val marker: Grid.Marker, val x: Int, val y: Int) : Comparable<Node> {
+        open var totalDistance = Double.POSITIVE_INFINITY
         private val edges: ArrayList<Node> = ArrayList()
-        public val x: Int = x
-        public val y: Int = y
 
-        public fun add(node: Node) {
+        fun add(node: Node) {
             edges.add(node)
             Collections.sort(edges)
         }
 
         override fun compareTo(other: Node): Int {
-            if (other.totalDistance.equals(totalDistance)) {
+            if (other.totalDistance == totalDistance) {
                 return 0
             }
             return if (totalDistance < other.totalDistance) -1 else 1
         }
 
-        public fun getEdges(): List<Node> {
+        fun getEdges(): List<Node> {
             return ArrayList(edges)
         }
     }
@@ -42,7 +35,6 @@ public open class Dijkstra : SearchAlgorithm {
         val unvisited = ArrayList<Node>(nodes)
         return findPath(startNode, unvisited, state.grid)
     }
-
 
     protected open fun createNodes(grid: Grid): ArrayList<Node> {
         val nodes = ArrayList<Node>()
@@ -60,7 +52,7 @@ public open class Dijkstra : SearchAlgorithm {
 
     protected fun createNodeGraph(nodes: ArrayList<Node>, grid: Grid): Node? {
         var start: Node? = null
-        for (i in 0..nodes.size() - 1) {
+        for (i in 0..nodes.size - 1) {
             val node = nodes[i]
             if (node.x != 0) {
                 node.add(nodes[getIndexFromPoint(Point(node.x - 1, node.y), grid)])
@@ -74,7 +66,7 @@ public open class Dijkstra : SearchAlgorithm {
             if (node.y < grid.rows - 1) {
                 node.add(nodes[getIndexFromPoint(Point(node.x, node.y + 1), grid)])
             }
-            if (node.marker.equals(Grid.Marker.START)) {
+            if (node.marker == Grid.Marker.START) {
                 start = node
             }
         }
@@ -85,10 +77,10 @@ public open class Dijkstra : SearchAlgorithm {
         val path = ArrayList<Point>()
         startNode.totalDistance = 0.0
         Collections.sort(unvisited)
-        while (!unvisited.isEmpty() && !unvisited.first().totalDistance.equals(Double.POSITIVE_INFINITY)) {
+        while (!unvisited.isEmpty() && unvisited.first().totalDistance != Double.POSITIVE_INFINITY) {
             val next = unvisited.first()
             visitNode(next, grid)
-            if (next.marker.equals(Grid.Marker.END)) {
+            if (next.marker == Grid.Marker.END) {
                 traceback(next, path)
                 break
             }
@@ -99,7 +91,7 @@ public open class Dijkstra : SearchAlgorithm {
     }
 
     protected fun traceback(node: Node, path: ArrayList<Point>) {
-        if (node.marker.equals(Grid.Marker.START)) {
+        if (node.marker == Grid.Marker.START) {
             return
         }
         var currentMinDistance = Double.POSITIVE_INFINITY
@@ -113,7 +105,7 @@ public open class Dijkstra : SearchAlgorithm {
         if (currentMinNode == null) {
             throw(Throwable("currentMindNode should never be null!"))
         }
-        if (!node.marker.equals(Grid.Marker.END)) {
+        if (node.marker != Grid.Marker.END) {
             path.add(Point(node.x, node.y))
         }
         traceback(currentMinNode, path)
@@ -122,20 +114,18 @@ public open class Dijkstra : SearchAlgorithm {
     protected fun visitNode(node: Node, grid: Grid) {
         val currentDistance = node.totalDistance + 1
         for (edge in node.getEdges()) {
-            if (edge.marker.equals(Grid.Marker.WALL)) {
+            if (edge.marker == Grid.Marker.WALL) {
                 continue
             }
             if (edge.totalDistance > currentDistance) {
                 edge.totalDistance = currentDistance
             }
         }
-        if (grid.get(node.x, node.y).equals(Grid.Marker.END) || grid.get(node.x, node.y).equals(Grid.Marker.START)) {
+        if (grid.get(node.x, node.y) == Grid.Marker.END || grid.get(node.x, node.y) == Grid.Marker.START) {
             return
         }
         grid.set(node.x, node.y, Grid.Marker.VISITED)
     }
 
-    override fun getName(): String {
-        return "Dijkstra"
-    }
+    override val name = "Dijkstra"
 }

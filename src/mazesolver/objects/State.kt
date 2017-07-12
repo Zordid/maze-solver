@@ -40,7 +40,7 @@ class State(logger: Logger) {
                 for (point in solution) {
                     grid.set(point.x, point.y, Grid.Marker.PATH)
                 }
-                distance = solution.size()
+                distance = solution.size
             } catch (t: Throwable) {
                 t.printStackTrace()
             }
@@ -51,7 +51,7 @@ class State(logger: Logger) {
                 val endTime: Long = System.currentTimeMillis()
                 for (statusListener in statusChangeListeners) {
                     statusListener("Time: %d ms. Distance: %d. Algorithm: %s".format(
-                            endTime - startTime, distance, al.getName()))
+                            endTime - startTime, distance, al.name))
                 }
             })
         })

@@ -41,11 +41,11 @@ class Canvas(state: State, logger: Logger) : JPanel() {
 
     init {
         val self = this
-        setMinimumSize(state.canvasDimension)
-        setMaximumSize(state.canvasDimension)
-        setPreferredSize(state.canvasDimension)
-        setSize(state.canvasDimension)
-        setLayout(BoxLayout(this, BoxLayout.LINE_AXIS))
+        minimumSize = state.canvasDimension
+        maximumSize = state.canvasDimension
+        preferredSize = state.canvasDimension
+        size = state.canvasDimension
+        layout = BoxLayout(this, BoxLayout.LINE_AXIS)
         addMouseMotionListener(object: MouseMotionListener {
             override fun mouseDragged(e: MouseEvent) {
                 if (dragMarker == null) {
@@ -53,10 +53,10 @@ class Canvas(state: State, logger: Logger) : JPanel() {
                 }
                 val eventLocation = EventLocation(e, state)
                 if (eventLocation.x >= state.grid.columns || eventLocation.y >= state.grid.rows) {
-                    return;
+                    return
                 }
                 if (eventLocation.x < 0 || eventLocation.y < 0) {
-                    return;
+                    return
                 }
                 val dM = dragMarker!!
                 state.grid.set(eventLocation.x, eventLocation.y, dM)
@@ -75,13 +75,13 @@ class Canvas(state: State, logger: Logger) : JPanel() {
                 val loc = EventLocation(e, state)
                 lastLoc = loc
                 if (SwingUtilities.isRightMouseButton(e)) {
-                    popupMenu.show(self, e.getX(), e.getY())
+                    popupMenu.show(self, e.x, e.y)
                     return
                 }
                 if (!loc.isValid()) {
-                    return;
+                    return
                 }
-                if (state.grid.get(loc.x, loc.y).equals(Grid.Marker.WALL)) {
+                if (state.grid.get(loc.x, loc.y) == Grid.Marker.WALL) {
                     state.grid.set(loc.x, loc.y, Grid.Marker.DEFAULT)
                 } else {
                     state.grid.set(loc.x, loc.y, Grid.Marker.WALL)
@@ -92,7 +92,7 @@ class Canvas(state: State, logger: Logger) : JPanel() {
             override fun mousePressed(e: MouseEvent) {
                 val eventLocation = EventLocation(e, state)
                 dragMarker = Grid.Marker.WALL
-                if (state.grid.get(eventLocation.x, eventLocation.y).equals(Grid.Marker.WALL)) {
+                if (state.grid.get(eventLocation.x, eventLocation.y) == Grid.Marker.WALL) {
                     dragMarker = Grid.Marker.DEFAULT
                 }
                 over = null

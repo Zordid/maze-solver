@@ -20,12 +20,12 @@ public fun run () {
     val frame: JFrame = JFrame("Maze Solver")
     val state = State(logger)
     val dialog = Dialog(state, logger)
-    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
-    frame.setResizable(false)
+    frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
+    frame.isResizable = false
     val container: Container = frame.getContentPane()
     container.add(dialog.getGraphContainer(), BorderLayout.CENTER)
-    frame.setMinimumSize(Dimension(state.squaredSize, 200))
+    frame.minimumSize = Dimension(state.squaredSize, 200)
     frame.pack()
     frame.setLocationRelativeTo(null)
-    frame.setVisible(true)
+    frame.isVisible = true
 }
