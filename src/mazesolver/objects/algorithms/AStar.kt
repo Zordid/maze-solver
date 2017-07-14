@@ -28,10 +28,11 @@ class AStar : Dijkstra() {
 
         override fun compareTo(other: Dijkstra.Node): Int {
             val n = other as Node
-            if (n.projectedDistance == this.projectedDistance) {
-                return 0
+            return when {
+                this.projectedDistance == n.projectedDistance -> 0
+                this.projectedDistance < n.projectedDistance -> -1
+                else -> +1
             }
-            return if (this.projectedDistance < other.projectedDistance) -1 else 1
         }
 
         fun getNodeDistanceToEnd(node: Dijkstra.Node) : Double {
@@ -40,14 +41,14 @@ class AStar : Dijkstra() {
             }
             val ep = endPoint!!
             if (node.totalDistance == Double.POSITIVE_INFINITY) {
-                return node.totalDistance;
+                return node.totalDistance
             }
             val manhattanDistance = Math.abs(node.x - ep.x) + Math.abs(node.y - ep.y)
             return node.totalDistance + manhattanDistance
         }
     }
 
-    protected override fun createNodes(grid: Grid): ArrayList<Dijkstra.Node> {
+    override fun createNodes(grid: Grid): ArrayList<Dijkstra.Node> {
         val nodes = ArrayList<Dijkstra.Node>()
         for (x in 0..(grid.columns - 1)) {
             for (y in 0..(grid.rows - 1)) {

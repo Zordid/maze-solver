@@ -1,7 +1,3 @@
 package mazesolver.objects
 
-
-class Point(x: Int, y: Int) {
-    public val x: Int = x;
-    public val y: Int = y;
-}
+data class Point(val x: Int, val y: Int)

@@ -2,40 +2,34 @@ package mazesolver.objects.ui
 
 import mazesolver.objects.Grid
 import mazesolver.objects.State
-import java.awt.*
-import java.awt.event.*
+import java.awt.Graphics
+import java.awt.Graphics2D
+import java.awt.event.MouseEvent
+import java.awt.event.MouseListener
+import java.awt.event.MouseMotionListener
 import java.util.logging.Logger
 import javax.swing.*
 
-class Canvas(state: State, logger: Logger) : JPanel() {
-    val state = state
-    var over: Point? = null
+class Canvas(val state: State, val logger: Logger) : JPanel() {
     val popupMenu = JPopupMenu()
-    val logger = logger
     var lastLoc: EventLocation? = null
+    var over: EventLocation? = null
     var dragMarker: Grid.Marker? = null
 
     class EventLocation(e: MouseEvent, state: State) {
-        private val state = state
-        private val clicked = eventToPoint(e)
-        public val x: Int = clicked.x / state.boxSize
-        public val y: Int = clicked.y / state.boxSize
+        val x: Int
+        val y: Int
+        val valid: Boolean
 
-        private fun eventToPoint(e: MouseEvent): Point {
+        init {
             val s = state.boxSize
-            val x = (e.getX() / s) * s
-            val y = (e.getY() / s) * s
-            return Point(x, y)
+            x = e.x / s
+            y = e.y / s
+            valid = (x in 0..state.grid.columns && y in 0..state.grid.rows)
         }
 
-        fun isValid(): Boolean {
-            if (x < 0 || y < 0) {
-                return false
-            }
-            if (x >= state.grid.columns || y >= state.grid.rows) {
-                return false
-            }
-            return true
+        override fun toString(): String {
+            return "EventLocation(x=$x, y=$y, valid=$valid)"
         }
     }
 
@@ -46,7 +40,8 @@ class Canvas(state: State, logger: Logger) : JPanel() {
         preferredSize = state.canvasDimension
         size = state.canvasDimension
         layout = BoxLayout(this, BoxLayout.LINE_AXIS)
-        addMouseMotionListener(object: MouseMotionListener {
+        addMouseMotionListener(object : MouseMotionListener {
+
             override fun mouseDragged(e: MouseEvent) {
                 if (dragMarker == null) {
                     return
@@ -64,8 +59,7 @@ class Canvas(state: State, logger: Logger) : JPanel() {
             }
 
             override fun mouseMoved(e: MouseEvent) {
-                val eventLocation = EventLocation(e, state)
-                over = Point(eventLocation.x, eventLocation.y)
+                over = EventLocation(e, state)
                 repaint()
             }
         })
@@ -78,7 +72,7 @@ class Canvas(state: State, logger: Logger) : JPanel() {
                     popupMenu.show(self, e.x, e.y)
                     return
                 }
-                if (!loc.isValid()) {
+                if (!loc.valid) {
                     return
                 }
                 if (state.grid.get(loc.x, loc.y) == Grid.Marker.WALL) {
@@ -112,25 +106,29 @@ class Canvas(state: State, logger: Logger) : JPanel() {
         })
         var menuItem = JMenuItem("Set to start")
         fun setMarker(marker: Grid.Marker) {
-            if (lastLoc == null) {
-                return
+            lastLoc?.let {
+                state.grid.set(it.x, it.y, marker)
             }
-            state.grid.set(lastLoc!!.x, lastLoc!!.y, marker)
         }
-        menuItem.addActionListener({e: ActionEvent -> run {
-            logger.info("Setting to start")
-            setMarker(Grid.Marker.START)
-            repaint()
-        }})
+        menuItem.addActionListener({
+            run {
+                logger.info("Setting to start - " + lastLoc)
+                setMarker(Grid.Marker.START)
+                repaint()
+            }
+        })
         popupMenu.add(menuItem)
         menuItem = JMenuItem("Set to end")
-        menuItem.addActionListener({e: ActionEvent -> run {
-            logger.info("Setting to end")
-            setMarker(Grid.Marker.END)
-            repaint()
-        }})
+        menuItem.addActionListener({
+            run {
+                logger.info("Setting to end - " + lastLoc)
+                setMarker(Grid.Marker.END)
+                repaint()
+            }
+        })
         popupMenu.add(menuItem)
-        self.setComponentPopupMenu(popupMenu)
+        // as right mouse click is explicitly handled in mouseclicked
+        //self.componentPopupMenu = popupMenu
     }
 
 
@@ -141,32 +139,29 @@ class Canvas(state: State, logger: Logger) : JPanel() {
 
     private fun doDrawing(g: Graphics) {
         val g2d = g as Graphics2D
-        val size = getSize()
-        g2d.setColor(state.canvasBG)
-        val width = size.width;
-        val height = size.height;
+        val width = size.width
+        val height = size.height
+        g2d.color = state.canvasBG
         g2d.fillRect(0, 0, width, height)
-        val columnWidth = state.canvasDimension.width/state.grid.columns
-        val columnHeight = state.canvasDimension.height/state.grid.rows
-        for (x: Int in 0..state.grid.columns-1) {
-            for (y: Int in 0..state.grid.rows-1) {
-                if (!state.grid.get(x, y).equals(Grid.Marker.DEFAULT)) {
-                    paintGrid(x, y, g2d)
-                }
+        val columnWidth = state.canvasDimension.width / state.grid.columns
+        val columnHeight = state.canvasDimension.height / state.grid.rows
+        for (x in 0..state.grid.columns - 1) {
+            for (y in 0..state.grid.rows - 1) {
+                paintGrid(x, y, g2d)
             }
         }
-        g2d.setColor(state.lineColor)
-        for (x: Int in 1..state.grid.columns) {
+        g2d.color = state.lineColor
+        for (x in 1..state.grid.columns) {
             val xPos = x * columnWidth
             g2d.drawLine(xPos, 0, xPos, state.canvasDimension.height)
         }
-        for (y: Int in 1..state.grid.rows) {
+        for (y in 1..state.grid.rows) {
             val yPos = y * columnHeight
             g2d.drawLine(0, yPos, state.canvasDimension.width, yPos)
         }
         if (over != null) {
             val o = over!!
-            g2d.setColor(state.overColor)
+            g2d.color = state.overColor
             val s = state.boxSize
             g2d.fillRect(o.x * s, o.y * s, s, s)
         }
@@ -174,12 +169,13 @@ class Canvas(state: State, logger: Logger) : JPanel() {
 
     private fun paintGrid(x: Int, y: Int, g2d: Graphics2D) {
         when (state.grid.get(x, y)) {
-            Grid.Marker.WALL -> g2d.setColor(state.wallColor)
-            Grid.Marker.OVER -> g2d.setColor(state.overColor)
-            Grid.Marker.START -> g2d.setColor(state.startColor)
-            Grid.Marker.END -> g2d.setColor(state.endColor)
-            Grid.Marker.PATH -> g2d.setColor(state.pathColor)
-            Grid.Marker.VISITED -> g2d.setColor(state.visitedColor)
+            Grid.Marker.WALL -> g2d.color = state.wallColor
+            Grid.Marker.OVER -> g2d.color = state.overColor
+            Grid.Marker.START -> g2d.color = state.startColor
+            Grid.Marker.END -> g2d.color = state.endColor
+            Grid.Marker.PATH -> g2d.color = state.pathColor
+            Grid.Marker.VISITED -> g2d.color = state.visitedColor
+            else -> return
         }
         val s = state.boxSize
         g2d.fillRect(x * s, y * s, s, s)

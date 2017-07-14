@@ -1,6 +1,5 @@
 package mazesolver.objects
 
-
 class Grid(val columns: Int, val rows: Int) {
     private val grid = Array(columns, { Array(rows, { Marker.DEFAULT }) })
     private var startPos: MarkerPos? = null
@@ -17,9 +16,7 @@ class Grid(val columns: Int, val rows: Int) {
         set(columns - 1, rows - 1, Marker.END)
     }
 
-    fun get(x: Int, y: Int): Marker {
-        return grid[x][y]
-    }
+    fun get(x: Int, y: Int) = grid[x][y]
 
     fun set(x: Int, y: Int, value: Marker) {
         val currentValue = grid[x][y]

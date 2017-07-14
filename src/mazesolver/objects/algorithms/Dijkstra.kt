@@ -17,10 +17,11 @@ open class Dijkstra : SearchAlgorithm {
         }
 
         override fun compareTo(other: Node): Int {
-            if (other.totalDistance == totalDistance) {
-                return 0
+            return when {
+                totalDistance == other.totalDistance -> 0
+                totalDistance < other.totalDistance -> -1
+                else -> +1
             }
-            return if (totalDistance < other.totalDistance) -1 else 1
         }
 
         fun getEdges(): List<Node> {
@@ -29,9 +30,9 @@ open class Dijkstra : SearchAlgorithm {
     }
 
     override fun execute(state: State): List<Point> {
-        state.getLogger().info("Starting search")
+        state.logger.info("Starting search")
         val nodes = createNodes(state.grid)
-        val startNode = createNodeGraph(nodes, state.grid) ?: return ArrayList<Point>()
+        val startNode = createNodeGraph(nodes, state.grid) ?: return ArrayList()
         val unvisited = ArrayList<Node>(nodes)
         return findPath(startNode, unvisited, state.grid)
     }
