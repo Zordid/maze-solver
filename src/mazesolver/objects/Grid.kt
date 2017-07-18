@@ -2,18 +2,16 @@ package mazesolver.objects
 
 class Grid(val columns: Int, val rows: Int) {
     private val grid = Array(columns, { Array(rows, { Marker.DEFAULT }) })
-    private var startPos: MarkerPos? = null
-    private var endPos: MarkerPos? = null
+    var startPoint: Point = Point(0, 0)
+    var endPoint: Point = Point(columns - 1, rows - 1)
 
     enum class Marker {
         DEFAULT, WALL, OVER, START, END, PATH, VISITED
     }
 
-    private data class MarkerPos(val x: Int, val y: Int)
-
     init {
-        set(0, 0, Marker.START)
-        set(columns - 1, rows - 1, Marker.END)
+        grid[startPoint.x][startPoint.y] = Marker.START
+        grid[endPoint.x][endPoint.y] = Marker.END
     }
 
     fun get(x: Int, y: Int) = grid[x][y]
@@ -26,16 +24,12 @@ class Grid(val columns: Int, val rows: Int) {
             }
         }
         if (value == Marker.START) {
-            startPos?.let { (x1, y1) ->
-                grid[x1][y1] = Marker.DEFAULT
-            }
-            startPos = MarkerPos(x, y)
+            grid[startPoint.x][startPoint.y] = Marker.DEFAULT
+            startPoint = Point(x, y)
         }
         if (value == Marker.END) {
-            endPos?.let { (x1, y1) ->
-                grid[x1][y1] = Marker.DEFAULT
-            }
-            endPos = MarkerPos(x, y)
+            grid[endPoint.x][endPoint.y] = Marker.DEFAULT
+            endPoint = Point(x, y)
         }
         grid[x][y] = value
     }
@@ -55,4 +49,5 @@ class Grid(val columns: Int, val rows: Int) {
                     .forEach { row[it] = Marker.DEFAULT }
         }
     }
+
 }

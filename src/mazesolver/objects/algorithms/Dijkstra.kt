@@ -8,13 +8,17 @@ import java.util.*
 open class Dijkstra : SearchAlgorithm {
 
     open class Node(val marker: Grid.Marker, val x: Int, val y: Int) : Comparable<Node> {
-        open var totalDistance = Double.POSITIVE_INFINITY
-        private val edges: ArrayList<Node> = ArrayList()
+        var totalDistance = Double.POSITIVE_INFINITY
+        private val neighbours: ArrayList<Node> = ArrayList()
 
-        fun add(node: Node) {
-            edges.add(node)
-            Collections.sort(edges)
+        init {
+            if (marker == Grid.Marker.START)
+                totalDistance = 0.0
         }
+
+        fun addNeighbour(node: Node) = neighbours.add(node)
+
+        fun getNeighbours(): List<Node> = neighbours.toList()
 
         override fun compareTo(other: Node): Int {
             return when {
@@ -23,60 +27,47 @@ open class Dijkstra : SearchAlgorithm {
                 else -> +1
             }
         }
-
-        fun getEdges(): List<Node> {
-            return ArrayList(edges)
-        }
     }
 
     override fun execute(state: State): List<Point> {
         state.logger.info("Starting search")
         val nodes = createNodes(state.grid)
-        val startNode = createNodeGraph(nodes, state.grid) ?: return ArrayList()
+        createNodeGraph(nodes, state.grid)
         val unvisited = ArrayList<Node>(nodes)
-        return findPath(startNode, unvisited, state.grid)
+        return findPath(unvisited, state.grid)
     }
 
-    protected open fun createNodes(grid: Grid): ArrayList<Node> {
+    fun createNodes(grid: Grid): ArrayList<Node> {
         val nodes = ArrayList<Node>()
         for (x in 0..(grid.columns - 1)) {
             for (y in 0..(grid.rows - 1)) {
-                nodes.add(Node(grid.get(x, y), x, y))
+                nodes.add(createNode(grid.get(x, y), x, y))
             }
         }
         return nodes
     }
 
-    protected fun getIndexFromPoint(point: Point, grid: Grid): Int {
-        return point.x * grid.rows + point.y
-    }
+    fun Grid.getIndexFromPoint(x: Int, y: Int) = x * rows + y
 
-    protected fun createNodeGraph(nodes: ArrayList<Node>, grid: Grid): Node? {
-        var start: Node? = null
-        for (i in 0..nodes.size - 1) {
-            val node = nodes[i]
+    protected fun createNodeGraph(nodes: List<Node>, grid: Grid) {
+        for (node in nodes) {
             if (node.x != 0) {
-                node.add(nodes[getIndexFromPoint(Point(node.x - 1, node.y), grid)])
+                node.addNeighbour(nodes[grid.getIndexFromPoint(node.x - 1, node.y)])
             }
             if (node.x < grid.columns - 1) {
-                node.add(nodes[getIndexFromPoint(Point(node.x + 1, node.y), grid)])
+                node.addNeighbour(nodes[grid.getIndexFromPoint(node.x + 1, node.y)])
             }
             if (node.y != 0) {
-                node.add(nodes[getIndexFromPoint(Point(node.x, node.y - 1), grid)])
+                node.addNeighbour(nodes[grid.getIndexFromPoint(node.x, node.y - 1)])
             }
             if (node.y < grid.rows - 1) {
-                node.add(nodes[getIndexFromPoint(Point(node.x, node.y + 1), grid)])
-            }
-            if (node.marker == Grid.Marker.START) {
-                start = node
+                node.addNeighbour(nodes[grid.getIndexFromPoint(node.x, node.y + 1)])
             }
         }
-        return start
     }
 
-    protected fun findPath(startNode: Node, unvisited: ArrayList<Node>, grid: Grid): List<Point> {
+    protected fun findPath(unvisited: ArrayList<Node>, grid: Grid): List<Point> {
         val path = ArrayList<Point>()
-        startNode.totalDistance = 0.0
         Collections.sort(unvisited)
         while (!unvisited.isEmpty() && unvisited.first().totalDistance != Double.POSITIVE_INFINITY) {
             val next = unvisited.first()
@@ -97,14 +88,14 @@ open class Dijkstra : SearchAlgorithm {
         }
         var currentMinDistance = Double.POSITIVE_INFINITY
         var currentMinNode: Node? = null
-        for (edge in node.getEdges()) {
-            if (edge.totalDistance < currentMinDistance) {
-                currentMinDistance = edge.totalDistance
-                currentMinNode = edge
+        for (neighbour in node.getNeighbours()) {
+            if (neighbour.totalDistance < currentMinDistance) {
+                currentMinDistance = neighbour.totalDistance
+                currentMinNode = neighbour
             }
         }
         if (currentMinNode == null) {
-            throw(Throwable("currentMindNode should never be null!"))
+            throw(Throwable("currentMinNode should never be null!"))
         }
         if (node.marker != Grid.Marker.END) {
             path.add(Point(node.x, node.y))
@@ -114,14 +105,9 @@ open class Dijkstra : SearchAlgorithm {
 
     protected fun visitNode(node: Node, grid: Grid) {
         val currentDistance = node.totalDistance + 1
-        for (edge in node.getEdges()) {
-            if (edge.marker == Grid.Marker.WALL) {
-                continue
-            }
-            if (edge.totalDistance > currentDistance) {
-                edge.totalDistance = currentDistance
-            }
-        }
+        node.getNeighbours()
+                .filter { it.marker != Grid.Marker.WALL && it.totalDistance > currentDistance }
+                .forEach { it.totalDistance = currentDistance }
         if (grid.get(node.x, node.y) == Grid.Marker.END || grid.get(node.x, node.y) == Grid.Marker.START) {
             return
         }
@@ -129,4 +115,6 @@ open class Dijkstra : SearchAlgorithm {
     }
 
     override val name = "Dijkstra"
+
+    open fun createNode(marker: Grid.Marker, x: Int, y: Int) = Node(marker, x, y)
 }
