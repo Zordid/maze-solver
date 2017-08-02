@@ -37,7 +37,7 @@ class State(val logger: Logger) {
             try {
                 val solution = al.execute(self)
                 for ((x, y) in solution) {
-                    grid.set(x, y, Grid.Marker.PATH)
+                    grid[x, y] = Grid.Marker.PATH
                 }
                 distance = solution.size
             } catch (t: Throwable) {

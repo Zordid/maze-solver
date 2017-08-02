@@ -39,11 +39,14 @@ open class Dijkstra : SearchAlgorithm {
 
     fun createNodes(grid: Grid): ArrayList<Node> {
         val nodes = ArrayList<Node>()
-        for (x in 0..(grid.columns - 1)) {
-            for (y in 0..(grid.rows - 1)) {
-                nodes.add(createNode(grid.get(x, y), x, y))
-            }
+        for ((x, y) in grid.coordinates) {
+            nodes.add(createNode(grid[x, y], x, y))
         }
+//        for (x in 0..(grid.columns - 1)) {
+//            for (y in 0..(grid.rows - 1)) {
+//                nodes.add(createNode(grid[x, y], x, y))
+//            }
+//        }
         return nodes
     }
 
@@ -108,10 +111,10 @@ open class Dijkstra : SearchAlgorithm {
         node.getNeighbours()
                 .filter { it.marker != Grid.Marker.WALL && it.totalDistance > currentDistance }
                 .forEach { it.totalDistance = currentDistance }
-        if (grid.get(node.x, node.y) == Grid.Marker.END || grid.get(node.x, node.y) == Grid.Marker.START) {
+        if (grid[node.x, node.y] == Grid.Marker.END || grid[node.x, node.y] == Grid.Marker.START) {
             return
         }
-        grid.set(node.x, node.y, Grid.Marker.VISITED)
+        grid[node.x, node.y] = Grid.Marker.VISITED
     }
 
     override val name = "Dijkstra"

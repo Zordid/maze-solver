@@ -54,7 +54,7 @@ class Canvas(val state: State, val logger: Logger) : JPanel() {
                     return
                 }
                 val dM = dragMarker!!
-                state.grid.set(eventLocation.x, eventLocation.y, dM)
+                state.grid[eventLocation.x, eventLocation.y] = dM
                 repaint()
             }
 
@@ -75,10 +75,10 @@ class Canvas(val state: State, val logger: Logger) : JPanel() {
                 if (!loc.valid) {
                     return
                 }
-                if (state.grid.get(loc.x, loc.y) == Grid.Marker.WALL) {
-                    state.grid.set(loc.x, loc.y, Grid.Marker.DEFAULT)
+                if (state.grid[loc.x, loc.y] == Grid.Marker.WALL) {
+                    state.grid[loc.x, loc.y] = Grid.Marker.DEFAULT
                 } else {
-                    state.grid.set(loc.x, loc.y, Grid.Marker.WALL)
+                    state.grid[loc.x, loc.y] = Grid.Marker.WALL
                 }
                 repaint()
             }
@@ -86,7 +86,7 @@ class Canvas(val state: State, val logger: Logger) : JPanel() {
             override fun mousePressed(e: MouseEvent) {
                 val eventLocation = EventLocation(e, state)
                 dragMarker = Grid.Marker.WALL
-                if (state.grid.get(eventLocation.x, eventLocation.y) == Grid.Marker.WALL) {
+                if (state.grid[eventLocation.x, eventLocation.y] == Grid.Marker.WALL) {
                     dragMarker = Grid.Marker.DEFAULT
                 }
                 over = null
@@ -107,7 +107,7 @@ class Canvas(val state: State, val logger: Logger) : JPanel() {
         var menuItem = JMenuItem("Set to start")
         fun setMarker(marker: Grid.Marker) {
             lastLoc?.let {
-                state.grid.set(it.x, it.y, marker)
+                state.grid[it.x, it.y] = marker
             }
         }
         menuItem.addActionListener({
@@ -168,7 +168,7 @@ class Canvas(val state: State, val logger: Logger) : JPanel() {
     }
 
     private fun paintGrid(x: Int, y: Int, g2d: Graphics2D) {
-        when (state.grid.get(x, y)) {
+        when (state.grid[x, y]) {
             Grid.Marker.WALL -> g2d.color = state.wallColor
             Grid.Marker.OVER -> g2d.color = state.overColor
             Grid.Marker.START -> g2d.color = state.startColor
